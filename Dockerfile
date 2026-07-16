@@ -33,4 +33,4 @@ RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framewor
     && chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8080
-CMD ["sh", "-c", "touch database/database.sqlite && php artisan migrate --force && php artisan serve --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh", "-c", "touch database/database.sqlite && php artisan migrate --force && php -S 0.0.0.0:${PORT:-8080} -t public vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php"]
