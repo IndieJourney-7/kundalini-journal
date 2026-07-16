@@ -1,9 +1,16 @@
+# Install PHP dependencies (needed by Vite build: resources/js/app.js imports vendor/tightenco/ziggy)
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --ignore-platform-reqs --no-scripts
+
 # Build frontend assets
 FROM node:20-alpine AS assets
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+COPY --from=vendor /app/vendor ./vendor
 RUN npm run build
 
 # PHP runtime
