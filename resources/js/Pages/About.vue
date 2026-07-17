@@ -4,15 +4,16 @@ import PublicSiteLayout from '@/Components/PublicSiteLayout.vue';
 </script>
 
 <template>
-    <Head title="About" />
+    <Head title="About GASM" />
 
     <PublicSiteLayout active="about">
         <section class="mx-auto max-w-[1120px] px-4 pb-16 pt-14">
             <p class="text-xs font-bold uppercase tracking-[0.22em] text-[#c28e2f]">About</p>
-            <h1 class="mt-2 font-heading text-3xl text-[#1f2235] sm:text-5xl">Our Sacred Mission</h1>
+            <h1 class="mt-2 font-heading text-3xl text-[#1f2235] sm:text-5xl">About GASM</h1>
             <p class="mt-5 max-w-3xl text-lg leading-8 text-[#5e6278]">
-                Golden Age Community supports sincere seekers in awakening Kundalini Shakti through grounded daily practice,
-                conscious living, and reflective journaling.
+                The Golden Age Spiritual Movement (GASM) supports sincere seekers in awakening Kundalini Shakti through
+                grounded daily practice, conscious living, and reflective journaling — inspiring humanity to awaken to
+                its true nature through meditation, wisdom, and self-discovery.
             </p>
 
             <div class="mt-10 grid gap-4 md:grid-cols-3">

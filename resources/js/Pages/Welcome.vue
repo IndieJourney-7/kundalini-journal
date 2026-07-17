@@ -1,16 +1,21 @@
 <script setup>
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import FloatingContactButtons from '@/Components/FloatingContactButtons.vue';
 import { getActiveQuote } from '@/quotes';
 
 const activeQuote = ref(null);
+const activeTranslationIndex = ref(0);
+let quoteSlideTimer = null;
 const mobileMenuOpen = ref(false);
+const openDropdown = ref(null);
+const desktopNavRef = ref(null);
 const page = usePage();
 
 watch(() => page.url, () => {
     mobileMenuOpen.value = false;
+    openDropdown.value = null;
 });
 
 const heroWords = ['Awaken.', 'Align.', 'Ascend.'];
@@ -53,23 +58,66 @@ const scheduleHeroTyping = () => {
 onMounted(() => {
     scheduleHeroTyping();
     activeQuote.value = getActiveQuote();
+
+    if (activeQuote.value?.translations?.length > 1) {
+        quoteSlideTimer = window.setInterval(() => {
+            activeTranslationIndex.value =
+                (activeTranslationIndex.value + 1) % activeQuote.value.translations.length;
+        }, 3800);
+    }
+
+    window.addEventListener('click', handleOutsideClick);
 });
 
 onBeforeUnmount(() => {
     heroTimers.forEach((timer) => window.clearTimeout(timer));
+    if (quoteSlideTimer) {
+        window.clearInterval(quoteSlideTimer);
+    }
+    window.removeEventListener('click', handleOutsideClick);
+});
+
+const currentQuoteTranslation = computed(() => {
+    if (!activeQuote.value?.translations?.length) {
+        return null;
+    }
+    return activeQuote.value.translations[activeTranslationIndex.value];
 });
 
 const navLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'About', href: '/about' },
-    { label: 'Meditation', href: '/meditation' },
-    { label: 'Knowledge', href: '/knowledge' },
-    { label: 'Events', href: '/events' },
-    { label: 'Journals', href: '/community' },
-    { label: 'Blog', href: '/blog' },
-    { label: 'Contact', href: '/contact' },
-    { label: 'Golden Rules', href: '/golden-rules' },
+    { key: 'home', label: 'Home', href: '/' },
+    {
+        key: 'about',
+        label: 'About',
+        href: '/about',
+        children: [
+            { key: 'about', label: 'About GASM', href: '/about' },
+            { key: 'grand-master', label: 'About Grand Master Dr Hari Krishna', href: '/about/grand-master' },
+            { key: 'core-team', label: 'Core Team', href: '/about/core-team' },
+        ],
+    },
+    {
+        key: 'meditation',
+        label: 'Meditation',
+        href: '/meditation',
+        children: [
+            { key: 'golden-rules', label: 'Golden Rules', href: '/golden-rules' },
+        ],
+    },
+    { key: 'events', label: 'Events', href: '/events' },
+    { key: 'journals', label: 'Journals', href: '/community' },
+    { key: 'contact', label: 'Contact', href: '/contact' },
 ];
+
+const toggleDropdown = (key) => {
+    openDropdown.value = openDropdown.value === key ? null : key;
+};
+
+const handleOutsideClick = (event) => {
+    if (desktopNavRef.value && !desktopNavRef.value.contains(event.target)) {
+        openDropdown.value = null;
+    }
+};
 
 const stats = [
     { value: '108+', label: 'Awakening Journeys' },
@@ -83,41 +131,47 @@ const footerGroups = [
         title: 'Quick Links',
         items: [
             { label: 'Home', href: '/' },
-            { label: 'About', href: '/about' },
+            { label: 'About GASM', href: '/about' },
             { label: 'Meditation', href: '/meditation' },
-            { label: 'Knowledge', href: '/knowledge' },
             { label: 'Events', href: '/events' },
             { label: 'Journals', href: '/community' },
+            { label: 'Contact', href: '/contact' },
         ],
     },
     {
         title: 'Resources',
         items: [
-            { label: 'Articles', href: '/blog' },
-            { label: 'eBooks', href: '/knowledge' },
-            { label: 'Videos', href: '/meditation' },
+            { label: 'Golden Rules', href: '/golden-rules' },
+            { label: 'Knowledge', href: '/knowledge' },
+            { label: 'Blog', href: '/blog' },
             { label: 'FAQ', href: '/contact' },
         ],
     },
     {
-        title: 'Community',
+        title: 'About',
         items: [
-            { label: 'Testimonials', href: '/community' },
-            { label: 'Practitioners', href: '/community' },
-            { label: 'Blog', href: '/blog' },
+            { label: 'About GASM', href: '/about' },
+            { label: 'Grand Master Dr Hari Krishna', href: '/about/grand-master' },
+            { label: 'Core Team', href: '/about/core-team' },
         ],
     },
     {
         title: 'Support',
         items: [
             { label: 'Contact', href: '/contact' },
+            { label: 'Donate Now', href: '/donate' },
             { label: 'Privacy Policy', href: '/contact' },
             { label: 'Terms of Use', href: '/contact' },
         ],
     },
 ];
 
-const socialIcons = ['f', 'ig', '▶', '◧'];
+const socialLinks = [
+    { key: 'youtube', label: 'YT', href: 'https://www.youtube.com/@GoldenAgeGurus' },
+    { key: 'facebook', label: 'f', href: 'https://www.facebook.com/goldenagecommunity' },
+    { key: 'instagram', label: 'IG', href: 'https://www.instagram.com/goldenagecommunity' },
+    { key: 'twitter', label: 'X', href: 'https://twitter.com/goldenagecommunity' },
+];
 </script>
 
 <template>
@@ -126,22 +180,42 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
     <main class="site-wrap">
         <header class="top-nav">
             <div class="top-nav-inner">
-                <Link href="/" class="brand">
+                <Link href="/" class="brand" aria-label="Golden Age Community">
                     <div class="brand-logo">
                         <ApplicationLogo compact class="h-full w-full" />
                     </div>
-                    <span>Golden Age Community</span>
                 </Link>
 
-                <div class="top-links">
-                    <Link
-                        v-for="(link, index) in navLinks"
-                        :key="link.label"
-                        :href="link.href"
-                        :class="{ active: index === 0 }"
-                    >
-                        {{ link.label }}
-                    </Link>
+                <div ref="desktopNavRef" class="top-links">
+                    <template v-for="link in navLinks" :key="link.key">
+                        <div v-if="link.children" class="nav-dropdown">
+                            <button
+                                type="button"
+                                class="nav-dropdown-toggle"
+                                :class="{ active: link.key === 'home' }"
+                                @click="toggleDropdown(link.key)"
+                                :aria-expanded="openDropdown === link.key"
+                            >
+                                {{ link.label }}
+                                <svg class="nav-caret" :class="{ open: openDropdown === link.key }" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                    <path d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
+                            <div v-if="openDropdown === link.key" class="nav-dropdown-panel">
+                                <Link
+                                    v-for="child in link.children"
+                                    :key="child.key"
+                                    :href="child.href"
+                                    @click="openDropdown = null"
+                                >
+                                    {{ child.label }}
+                                </Link>
+                            </div>
+                        </div>
+                        <Link v-else :href="link.href" :class="{ active: link.key === 'home' }">
+                            {{ link.label }}
+                        </Link>
+                    </template>
                     <Link href="/journal" class="login-btn">Login / Join</Link>
                 </div>
 
@@ -165,21 +239,42 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
             </div>
 
             <div v-if="mobileMenuOpen" class="mobile-menu">
-                <Link
-                    v-for="(link, index) in navLinks"
-                    :key="'m-' + link.label"
-                    :href="link.href"
-                    :class="{ active: index === 0 }"
-                    @click="mobileMenuOpen = false"
-                >
-                    {{ link.label }}
-                </Link>
+                <template v-for="link in navLinks" :key="'m-' + link.key">
+                    <Link
+                        :href="link.href"
+                        :class="{ active: link.key === 'home' }"
+                        @click="mobileMenuOpen = false"
+                    >
+                        {{ link.label }}
+                    </Link>
+                    <div v-if="link.children" class="mobile-submenu">
+                        <Link
+                            v-for="child in link.children"
+                            :key="'m-' + child.key"
+                            :href="child.href"
+                            @click="mobileMenuOpen = false"
+                        >
+                            {{ child.label }}
+                        </Link>
+                    </div>
+                </template>
             </div>
         </header>
 
         <div v-if="activeQuote" class="quote-banner">
-            <p class="quote-banner-text">&ldquo;{{ activeQuote.text }}&rdquo;</p>
-            <p v-if="activeQuote.author" class="quote-banner-author">— {{ activeQuote.author }}</p>
+            <div v-if="currentQuoteTranslation" class="quote-banner-slider">
+                <Transition name="quote-slide" mode="out-in">
+                    <div :key="currentQuoteTranslation.lang">
+                        <p class="quote-banner-lang">{{ currentQuoteTranslation.lang }}</p>
+                        <p class="quote-banner-text">&ldquo;{{ currentQuoteTranslation.text }}&rdquo;</p>
+                        <p v-if="activeQuote.author" class="quote-banner-author">— {{ activeQuote.author }}</p>
+                    </div>
+                </Transition>
+            </div>
+            <template v-else>
+                <p class="quote-banner-text">&ldquo;{{ activeQuote.text }}&rdquo;</p>
+                <p v-if="activeQuote.author" class="quote-banner-author">— {{ activeQuote.author }}</p>
+            </template>
         </div>
 
         <section class="hero-wrap">
@@ -227,6 +322,29 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
                 <h3>{{ item.value }}</h3>
                 <p>{{ item.label }}</p>
             </article>
+        </section>
+
+        <section class="movement-wrap">
+            <h2 class="movement-title">Golden Age Spiritual Movement</h2>
+
+            <div class="movement-grid">
+                <div class="movement-col">
+                    <p class="movement-col-label">Our Mission</p>
+                    <p class="movement-col-text">
+                        Inspiring humanity to awaken to its true nature through meditation, wisdom, and self-discovery.
+                        We are a free spiritual movement dedicated to relieving suffering, nurturing inner peace, and
+                        fostering compassion. Together, we are creating a Golden Age of love, harmony, and conscious living.
+                    </p>
+                </div>
+                <div class="movement-col">
+                    <p class="movement-col-label">About Kundalini Shakti</p>
+                    <p class="movement-col-text">
+                        Kundalini Shakti is the dormant, divine energy resting within every being. Through sacred practice,
+                        breathwork, and deep meditation, we guide seekers to awaken this energy and align body, mind, and
+                        spirit — a sacred space for Kundalini awakening, conscious living, and inner transformation.
+                    </p>
+                </div>
+            </div>
         </section>
 
         <section id="about" class="section-wrap">
@@ -336,14 +454,23 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
                                 <ApplicationLogo compact class="h-full w-full" />
                             </div>
                             <div>
-                                <p class="footer-brand-top">GOLDEN AGE</p>
-                                <p class="footer-brand">COMMUNITY</p>
+                                <p class="footer-brand">GASM Social Connections</p>
                             </div>
                         </div>
                         <p class="footer-text">Awaken, Align, Ascend.</p>
 
                         <div class="footer-socials">
-                            <span v-for="icon in socialIcons" :key="icon" class="footer-social-icon">{{ icon }}</span>
+                            <a
+                                v-for="social in socialLinks"
+                                :key="social.key"
+                                :href="social.href"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                :aria-label="social.key"
+                                class="footer-social-icon"
+                            >
+                                {{ social.label }}
+                            </a>
                         </div>
                     </div>
 
@@ -355,13 +482,10 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
                     </div>
 
                     <div class="footer-subscribe">
-                        <p class="footer-column-title">Stay Connected</p>
-                        <p class="footer-subscribe-text">Get updated on events, new articles and meditation sessions.</p>
+                        <p class="footer-column-title">Support Our Mission</p>
+                        <p class="footer-subscribe-text">Your generosity keeps meditation, teachings, and community programs free for every seeker.</p>
 
-                        <form class="footer-subscribe-form" @submit.prevent>
-                            <input type="email" placeholder="Enter your email" />
-                            <button type="submit">Subscribe</button>
-                        </form>
+                        <Link href="/donate" class="footer-donate-btn">Donate Now</Link>
                     </div>
                 </div>
 
@@ -413,8 +537,8 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
 }
 
 .brand-logo {
-    width: 38px;
-    height: 38px;
+    width: 46px;
+    height: 46px;
     border-radius: 999px;
     overflow: hidden;
     border: 1px solid rgba(201, 162, 39, 0.45);
@@ -452,6 +576,91 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
     border-radius: 999px;
     background: #c28e2f;
     transform: translateX(-50%);
+}
+
+.nav-dropdown {
+    position: relative;
+}
+
+.nav-dropdown-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    color: #3f4258;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 5px 8px;
+    border-radius: 999px;
+}
+
+.nav-dropdown-toggle.active,
+.nav-dropdown-toggle:hover {
+    color: #c28e2f;
+}
+
+.nav-caret {
+    transition: transform 160ms ease;
+}
+
+.nav-caret.open {
+    transform: rotate(180deg);
+}
+
+.nav-dropdown-panel {
+    position: absolute;
+    left: 0;
+    top: calc(100% + 8px);
+    z-index: 30;
+    width: 260px;
+    background: #fff;
+    border: 1px solid rgba(201, 162, 39, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(30, 25, 10, 0.14);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.nav-dropdown-panel a {
+    text-decoration: none;
+    color: #3f4258;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 9px 12px;
+    border-radius: 8px;
+}
+
+.nav-dropdown-panel a:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #c28e2f;
+}
+
+.mobile-submenu {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0 0 4px 12px;
+    padding-left: 10px;
+    border-left: 1px solid rgba(201, 162, 39, 0.25);
+}
+
+.mobile-submenu a {
+    text-decoration: none;
+    color: #575c74;
+    font-size: 0.84rem;
+    font-weight: 500;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.mobile-submenu a:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #c28e2f;
 }
 
 .login-btn {
@@ -536,6 +745,34 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: #c3c8dd;
+}
+
+.quote-banner-slider {
+    overflow: hidden;
+}
+
+.quote-banner-lang {
+    margin: 0 0 2px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #c28e2f;
+}
+
+.quote-slide-enter-active,
+.quote-slide-leave-active {
+    transition: opacity 380ms ease, transform 380ms ease;
+}
+
+.quote-slide-enter-from {
+    opacity: 0;
+    transform: translateY(10px);
+}
+
+.quote-slide-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
 }
 
 .hero-wrap {
@@ -700,6 +937,59 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
     margin: 5px 0 0;
     font-size: 0.88rem;
     color: #6f7080;
+}
+
+.movement-wrap {
+    max-width: 1120px;
+    margin: 60px auto 0;
+    padding: 0 16px;
+}
+
+.movement-title {
+    margin: 0;
+    text-align: center;
+    font-family: 'Playfair Display', 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 800;
+    font-size: clamp(2.2rem, 5.4vw, 4rem);
+    color: #1d2240;
+    letter-spacing: 0.01em;
+}
+
+.movement-grid {
+    margin-top: 34px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+}
+
+.movement-col {
+    background: #fff;
+    border: 1px solid rgba(201, 162, 39, 0.18);
+    border-radius: 16px;
+    padding: 26px 24px;
+}
+
+.movement-col-label {
+    margin: 0 0 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #c28e2f;
+}
+
+.movement-col-text {
+    margin: 0;
+    color: #4e5265;
+    line-height: 1.75;
+    font-size: 1.02rem;
+}
+
+@media (max-width: 900px) {
+    .movement-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .section-wrap {
@@ -901,15 +1191,11 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
     padding: 4px;
 }
 
-.footer-brand-top,
 .footer-brand {
     margin: 0;
     font-size: 0.88rem;
     letter-spacing: 0.12em;
     font-weight: 700;
-}
-
-.footer-brand-top {
     color: #f3e0a4;
 }
 
@@ -935,6 +1221,13 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
     border: 1px solid rgba(255, 255, 255, 0.1);
     color: #e4e8f8;
     font-size: 0.9rem;
+    text-decoration: none;
+    transition: color 180ms ease, border-color 180ms ease;
+}
+
+.footer-social-icon:hover {
+    color: #f6d792;
+    border-color: rgba(201, 162, 39, 0.5);
 }
 
 .footer-column-title {
@@ -970,37 +1263,22 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
     line-height: 1.6;
 }
 
-.footer-subscribe-form {
+.footer-donate-btn {
     margin-top: 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.footer-subscribe-form input {
-    min-width: 0;
-    flex: 1;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    background: #2a3149;
-    padding: 12px 14px;
-    color: white;
-    font-size: 0.92rem;
-    outline: none;
-}
-
-.footer-subscribe-form input::placeholder {
-    color: #98a0ba;
-}
-
-.footer-subscribe-form button {
+    display: inline-flex;
+    text-decoration: none;
     border: 0;
     border-radius: 12px;
     background: #d59f41;
-    padding: 12px 16px;
+    padding: 12px 20px;
     color: #1d1d29;
     font-size: 0.92rem;
     font-weight: 700;
+    transition: background-color 180ms ease;
+}
+
+.footer-donate-btn:hover {
+    background: #e0b058;
 }
 
 .footer-bottom-row {
@@ -1079,10 +1357,6 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
     .footer-subscribe {
         grid-column: 1 / -1;
     }
-
-    .footer-subscribe-form {
-        flex-direction: row;
-    }
 }
 
 @media (max-width: 480px) {
@@ -1145,10 +1419,6 @@ const socialIcons = ['f', 'ig', '▶', '◧'];
 
     .footer-grid {
         grid-template-columns: 1fr;
-    }
-
-    .footer-subscribe-form {
-        flex-direction: column;
     }
 
     .footer-bottom-row {

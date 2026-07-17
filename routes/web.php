@@ -80,6 +80,14 @@ Route::prefix('ui')->group(function () {
         ]);
     });
 
+    Route::get('/admin/donation', function () {
+        return Inertia::render('Admin/Donation');
+    });
+
+    Route::get('/donate', function () {
+        return Inertia::render('Donate');
+    });
+
     // Public site previews
     Route::get('/golden-rules', function () {
         return Inertia::render('GoldenRules');
@@ -87,6 +95,14 @@ Route::prefix('ui')->group(function () {
 
     Route::get('/about', function () {
         return Inertia::render('About');
+    });
+
+    Route::get('/about/grand-master', function () {
+        return Inertia::render('AboutGrandMaster');
+    });
+
+    Route::get('/about/core-team', function () {
+        return Inertia::render('CoreTeam');
     });
 
     Route::get('/meditation', function () {
@@ -159,6 +175,14 @@ Route::get('/about', function () {
     return Inertia::render('About');
 })->name('about');
 
+Route::get('/about/grand-master', function () {
+    return Inertia::render('AboutGrandMaster');
+})->name('about.grand-master');
+
+Route::get('/about/core-team', function () {
+    return Inertia::render('CoreTeam');
+})->name('about.core-team');
+
 Route::get('/meditation', function () {
     return Inertia::render('Meditation');
 })->name('meditation');
@@ -178,6 +202,10 @@ Route::get('/blog', function () {
 Route::get('/contact', function () {
     return Inertia::render('Contact');
 })->name('contact');
+
+Route::get('/donate', function () {
+    return Inertia::render('Donate');
+})->name('donate');
 
 Route::post('/contact', function (Request $request) {
     $request->validate([
@@ -294,6 +322,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/quotes', function () {
         return Inertia::render('Admin/Quotes');
     })->name('quotes');
+
+    Route::get('/donation', function () {
+        return Inertia::render('Admin/Donation');
+    })->name('donation');
 
     Route::get('/qr-codes', function () {
         return Inertia::render('Admin/QrCodes');

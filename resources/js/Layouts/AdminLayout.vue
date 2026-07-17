@@ -45,6 +45,7 @@ const navigationGroups = [
             { name: 'Meditations', href: adminPath('meditations'), icon: '🧘' },
             { name: 'Knowledge', href: adminPath('knowledge'), icon: '📚' },
             { name: 'Quotes', href: adminPath('quotes'), icon: '❝' },
+            { name: 'Donation Settings', href: adminPath('donation'), icon: '💛' },
         ],
     },
     {

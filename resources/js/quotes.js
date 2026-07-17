@@ -3,7 +3,17 @@
 const STORAGE_KEY = 'gac_home_quotes';
 
 export const DEFAULT_QUOTES = [
-    { id: 1, text: 'నీ శ్వాసే నీ గురువు.', author: '', active: true },
+    {
+        id: 1,
+        text: 'నీ శ్వాసే నీ గురువు.',
+        author: '',
+        active: true,
+        translations: [
+            { lang: 'Telugu', text: 'నీ శ్వాసే నీ గురువు.' },
+            { lang: 'English', text: 'Your breath is your guru.' },
+            { lang: 'Hindi', text: 'तुम्हारी सांस ही तुम्हारा गुरु है।' },
+        ],
+    },
 ];
 
 export function loadQuotes() {
