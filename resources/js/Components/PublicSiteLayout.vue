@@ -39,6 +39,7 @@ const menu = [
         href: '/meditation',
         children: [
             { key: 'golden-rules', label: 'Golden Rules', href: '/golden-rules' },
+            { key: 'knowledge', label: 'Knowledge', href: '/knowledge' },
         ],
     },
     { key: 'events', label: 'Events', href: '/events' },
@@ -127,17 +128,26 @@ const socialLinks = [
 
                 <nav ref="desktopNavRef" class="hidden items-center gap-1.5 lg:flex">
                     <template v-for="item in menu" :key="item.key">
-                        <div v-if="item.children" class="relative">
-                            <button
-                                type="button"
-                                @click="toggleDropdown(item.key)"
-                                :aria-expanded="openDropdown === item.key"
+                        <div v-if="item.children" class="relative flex items-center">
+                            <Link
+                                :href="item.href"
                                 :class="[
-                                    'flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[0.8rem] font-semibold transition-colors',
+                                    'rounded-full py-1.5 pl-2.5 pr-1 text-[0.8rem] font-semibold transition-colors',
                                     isParentActive(item) ? 'text-[#c28e2f]' : 'text-[#3f4258] hover:text-[#c28e2f]',
                                 ]"
                             >
                                 {{ item.label }}
+                            </Link>
+                            <button
+                                type="button"
+                                @click="toggleDropdown(item.key)"
+                                :aria-expanded="openDropdown === item.key"
+                                :aria-label="`Toggle ${item.label} submenu`"
+                                :class="[
+                                    'flex items-center rounded-full p-1.5 transition-colors',
+                                    isParentActive(item) ? 'text-[#c28e2f]' : 'text-[#3f4258] hover:text-[#c28e2f]',
+                                ]"
+                            >
                                 <svg
                                     class="h-3 w-3 transition-transform"
                                     :class="openDropdown === item.key ? 'rotate-180' : ''"

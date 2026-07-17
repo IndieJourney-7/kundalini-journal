@@ -102,6 +102,7 @@ const navLinks = [
         href: '/meditation',
         children: [
             { key: 'golden-rules', label: 'Golden Rules', href: '/golden-rules' },
+            { key: 'knowledge', label: 'Knowledge', href: '/knowledge' },
         ],
     },
     { key: 'events', label: 'Events', href: '/events' },
@@ -189,14 +190,16 @@ const socialLinks = [
                 <div ref="desktopNavRef" class="top-links">
                     <template v-for="link in navLinks" :key="link.key">
                         <div v-if="link.children" class="nav-dropdown">
+                            <Link :href="link.href" class="nav-dropdown-label">
+                                {{ link.label }}
+                            </Link>
                             <button
                                 type="button"
                                 class="nav-dropdown-toggle"
-                                :class="{ active: link.key === 'home' }"
                                 @click="toggleDropdown(link.key)"
                                 :aria-expanded="openDropdown === link.key"
+                                :aria-label="`Toggle ${link.label} submenu`"
                             >
-                                {{ link.label }}
                                 <svg class="nav-caret" :class="{ open: openDropdown === link.key }" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                                     <path d="M19 9l-7 7-7-7" />
                                 </svg>
@@ -580,25 +583,35 @@ const socialLinks = [
 
 .nav-dropdown {
     position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.nav-dropdown-label {
+    text-decoration: none;
+    color: #3f4258;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 2px 5px 8px;
+    border-radius: 999px;
+}
+
+.nav-dropdown-label:hover {
+    color: #c28e2f;
 }
 
 .nav-dropdown-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
     background: transparent;
     border: none;
     cursor: pointer;
-    text-decoration: none;
     color: #3f4258;
-    font-size: 0.8rem;
-    font-weight: 600;
     font-family: inherit;
-    padding: 5px 8px;
+    padding: 6px;
     border-radius: 999px;
 }
 
-.nav-dropdown-toggle.active,
 .nav-dropdown-toggle:hover {
     color: #c28e2f;
 }

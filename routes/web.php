@@ -84,6 +84,10 @@ Route::prefix('ui')->group(function () {
         return Inertia::render('Admin/Donation');
     });
 
+    Route::get('/admin/about-content', function () {
+        return Inertia::render('Admin/AboutContent');
+    });
+
     Route::get('/donate', function () {
         return Inertia::render('Donate');
     });
@@ -326,6 +330,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/donation', function () {
         return Inertia::render('Admin/Donation');
     })->name('donation');
+
+    Route::get('/about-content', function () {
+        return Inertia::render('Admin/AboutContent');
+    })->name('about-content');
 
     Route::get('/qr-codes', function () {
         return Inertia::render('Admin/QrCodes');
